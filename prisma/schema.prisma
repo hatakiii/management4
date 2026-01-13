@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+}
+
+model Attendance {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  date      DateTime
+  clockIn   DateTime
+  clockOut  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  User      User      @relation(fields: [userId], references: [id])
+}
+
+model Department {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  User      User[]
+}
+
+model Leave {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  startDate DateTime
+  endDate   DateTime
+  reason    String
+  status    LeaveStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime
+  User      User        @relation(fields: [userId], references: [id])
+}
+
+model Payroll {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  salary      Float
+  periodStart DateTime
+  periodEnd   DateTime
+  status      PayrollStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime
+  User        User          @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id           Int          @id @default(autoincrement())
+  username     String       @unique
+  firstName    String
+  lastName     String
+  email        String       @unique
+  password     String
+  birthday     DateTime
+  experience   Int
+  salary       Float
+  role         Role         @default(WORKER)
+  bankAccount  String?
+  bankName     String?
+  departmentId Int?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+  Attendance   Attendance[]
+  Leave        Leave[]
+  Payroll      Payroll[]
+  Department   Department?  @relation(fields: [departmentId], references: [id])
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
+enum PayrollStatus {
+  PENDING
+  PAID
+}
+
+enum Role {
+  ADMIN
+  WORKER
+}
